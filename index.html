@@ -1,41 +1,49 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt">
-    <head>
-        <meta charset="utf-8">
-        <title>A minha primeira pÃ¡gina</title>
-    </head>
-    <body>
-        <h1>ProgramaÃ§Ã£o na Web</h1>
-        <p>Na <a href="https://escolacomerciolisboa.pt/">Escola do ComÃ©rcio de Lisboa</a>, na disciplina de  Tecnologia 1 no 1ÂºBTIS, iremos aprender programaÃ§Ã£o web &#128517;
-        e abordaremos os princÃ­pios bÃ¡sicos associados ao desenvolvimento para a Web, apenas do lado <i>front-end</i>, lado visual. TambÃ©m sabemos que existe um
-    lado <i>back-end</i>, que Ã© o lado do servidor, mas nÃ£o iremos abordar esse lado.
-</p>
+<head>
+    <meta charset="utf-8">
+    <title>Primeira página · Web</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="main-container">
+        <header class="hero">
+            <p class="badge">Tecnologia 1 · 1º BTIS</p>
+            <h1>Programacao na Web</h1>
+            <p>Na <a href="https://escolacomerciolisboa.pt/">Escola do Comercio de Lisboa</a> vamos explorar os principios basicos do desenvolvimento Web com foco no front-end (HTML, CSS e JavaScript). O back-end sera citado para contextualizar, mas o foco e o lado visual.</p>
+            <div class="cta">
+                <a class="button" href="rest-api.html">Guia REST API + Java</a>
+                <a class="button secondary" href="https://escolacomerciolisboa.pt/">Site da Escola</a>
+            </div>
+        </header>
 
-<p>Aprender-se-Ã£o as seguintes tecnologias &#127760;:</p>
-<ul>   
-    <li>HTML</li>
-    <li>CSS</li>
-    <li>Javascript</li>
-</ul>
-<p>De forma a consolidar todos os conhecimentos, serÃ£o feitos alguns laboratÃ³rios</p>
-    <img src="wordcloud.png">
-    <img src="avatars-yccQZ7rBWDqnSwKR-lXx8KQ-t500x500.jpg">
-    <section>
-        <h2>Part III</h2>
-        <ul>
-            <li>Faz uma pagina exclusiva com informacao maxima sobre REST API e integracao com Java (front-end e back-end). Inclui exemplos praticos como fizemos anteriormente.</li>
-            <li>Resume a pesquisa para que o leitor tenha exemplos claros e um percurso rapido para compreender o tema.</li>
-            <li>Nota: a nova pagina deve ser acedida a partir da pagina inicial por um link em styles.css e ter o nome rest-api.html.</li>
-        </ul>
-    </section>
+        <section class="section-card">
+            <h2>O que vamos aprender</h2>
+            <ul class="list-pill">
+                <li><strong>HTML</strong>: estrutura do conteudo.</li>
+                <li><strong>CSS</strong>: estilo e layout.</li>
+                <li><strong>JavaScript</strong>: interatividade no browser.</li>
+            </ul>
+            <p>Vamos consolidar os conhecimentos com pequenos laboratorios e mini projetos.</p>
+        </section>
 
-    <section>
-        <h2>Explora uma dica via API</h2>
-        <p>Clica no botao para obter uma sugestao aleatoria relacionada com boas praticas.</p>
-        <button id="btn-tip">Carregar dica</button>
-        <p id="tip-output">Ainda nao ha sugestoes carregadas.</p>
-    </section>
+        <section class="section-card">
+            <h2>Galeria</h2>
+            <div class="grid-2">
+                <img src="wordcloud.png" alt="Imagem com termos da web">
+                <img src="avatars-yccQZ7rBWDqnSwKR-lXx8KQ-t500x500.jpg" alt="Avatar">
+            </div>
+        </section>
+
+        <section class="section-card">
+            <h2>Explora uma dica via API</h2>
+            <p>Clica no botao para obter uma sugestao aleatoria relacionada com boas praticas.</p>
+            <div class="cta">
+                <button class="button" id="btn-tip">Carregar dica</button>
+                <p id="tip-output">Ainda nao ha sugestoes carregadas.</p>
+            </div>
+        </section>
+    </div>
     <script src="tips.js"></script>
 </body>
 </html>
-

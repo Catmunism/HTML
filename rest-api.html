@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REST API e Integração com Java</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="main-container">
+        <header class="hero">
+            <p class="badge">Parte 3 · Guia de consulta</p>
+            <h1>REST API com Java: fundamentos, desenho e exemplos práticos</h1>
+            <p>Resumo completo para pesquisa rápida, cobrindo princípios REST, boas práticas de desenho, integração Java no backend (Spring Boot) e consumo no frontend.</p>
+            <div class="cta">
+                <a class="button" href="index.html">Voltar à página inicial</a>
+                <a class="button secondary" href="#exemplos-java">Ir para exemplos Java</a>
+            </div>
+        </header>
+
+        <section class="section-card">
+            <h2>O que é uma REST API?</h2>
+            <div class="grid-2">
+                <div>
+                    <ul class="list-pill">
+                        <li><strong>Resource oriented</strong>: cada endpoint representa um recurso (ex.: <code>/api/produtos</code>).</li>
+                        <li><strong>Stateless</strong>: cada pedido HTTP é independente, contendo toda a informação necessária.</li>
+                        <li><strong>Uniform interface</strong>: uso consistente de verbos HTTP, códigos de estado e formatos (geralmente JSON).</li>
+                        <li><strong>Cacheable</strong>: respostas podem ser cacheadas sempre que fizer sentido.</li>
+                        <li><strong>Layered system</strong>: cliente não precisa saber a quantidade de camadas entre ele e o servidor.</li>
+                    </ul>
+                </div>
+                <div class="code-block">
+GET /api/produtos?page=1&amp;size=12
+Host: api.exemplo.com
+Accept: application/json
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "dados": [...],
+  "paginacao": { "pagina": 1, "totalPaginas": 8 }
+}
+                </div>
+            </div>
+        </section>
+
+        <section class="section-card">
+            <h2>Design de endpoints</h2>
+            <div class="grid-2">
+                <div>
+                    <p class="small-title">CRUD → verbos HTTP</p>
+                    <ul class="list-pill">
+                        <li><code>GET /clientes</code> (listar) · <code>GET /clientes/{id}</code> (detalhe)</li>
+                        <li><code>POST /clientes</code> (criar) · <code>PUT /clientes/{id}</code> (atualizar total)</li>
+                        <li><code>PATCH /clientes/{id}</code> (atualizar parcial) · <code>DELETE /clientes/{id}</code> (remover)</li>
+                    </ul>
+                    <p class="small-title">Boas práticas</p>
+                    <ul class="list-pill">
+                        <li>URLs com substantivos no plural: <code>/api/pedidos</code>, <code>/api/pedidos/{id}/itens</code>.</li>
+                        <li>Versionar na URL ou header: <code>/api/v1/</code> ou <code>Accept: application/vnd.app.v2+json</code>.</li>
+                        <li>Filtros via query string: <code>/api/produtos?categoria=tech&amp;sort=preco,asc</code>.</li>
+                        <li>Paginação clara: <code>page</code>, <code>size</code>, <code>sort</code>; devolver metadados de total.</li>
+                        <li>Formato consistente de erros (ex.: <code>application/problem+json</code> com campos <code>status</code>, <code>timestamp</code>, <code>detalhe</code>).</li>
+                    </ul>
+                </div>
+                <div>
+                    <p class="small-title">Códigos de estado mais usados</p>
+                    <table>
+                        <thead>
+                            <tr><th>Código</th><th>Quando usar</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>200 OK</td><td>GET ou PUT/PATCH com corpo de resposta</td></tr>
+                            <tr><td>201 Created</td><td>POST que cria recurso (enviar <code>Location</code>)</td></tr>
+                            <tr><td>204 No Content</td><td>DELETE ou PUT/PATCH sem corpo</td></tr>
+                            <tr><td>400 Bad Request</td><td>Erro de validação ou formato</td></tr>
+                            <tr><td>401/403</td><td>Falha de autenticação/autorização</td></tr>
+                            <tr><td>404 Not Found</td><td>Recurso não existe</td></tr>
+                            <tr><td>409 Conflict</td><td>Violação de regra de negócio (ex.: duplicado)</td></tr>
+                            <tr><td>422 Unprocessable Entity</td><td>Dados válidos mas não processáveis</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-card" id="exemplos-java">
+            <h2>Backend em Java (Spring Boot)</h2>
+            <p>Fluxo recomendado: <strong>Controller ➜ Service ➜ Repository</strong>, com DTOs para entradas/saídas e validação com Bean Validation.</p>
+            <div class="grid-2">
+                <div class="code-block">
+// DTO (apenas dados expostos)
+public record ProdutoDTO(
+    Long id,
+    @NotBlank String nome,
+    @Positive double preco
+) {}
+
+// Entidade JPA
+@Entity
+public class Produto {
+  @Id @GeneratedValue private Long id;
+  private String nome;
+  private double preco;
+}
+
+// Repositório
+public interface ProdutoRepository extends JpaRepository&lt;Produto, Long&gt; {}
+                </div>
+                <div class="code-block">
+// Controller REST
+@RestController
+@RequestMapping("/api/produtos")
+@CrossOrigin(origins = "http://localhost:3000")
+public class ProdutoController {
+  private final ProdutoService service;
+  public ProdutoController(ProdutoService service) { this.service = service; }
+
+  @GetMapping
+  public List&lt;ProdutoDTO&gt; listar(@PageableDefault Pageable pg) {
+    return service.listar(pg);
+  }
+
+  @PostMapping
+  public ResponseEntity&lt;ProdutoDTO&gt; criar(@Valid @RequestBody ProdutoDTO dto) {
+    ProdutoDTO salvo = service.salvar(dto);
+    return ResponseEntity.created(URI.create("/api/produtos/" + salvo.id()))
+                        .body(salvo);
+  }
+
+  @PutMapping("/{id}")
+  public ProdutoDTO atualizar(@PathVariable Long id, @Valid @RequestBody ProdutoDTO dto) {
+    return service.atualizar(id, dto);
+  }
+
+  @DeleteMapping("/{id}")
+  public ResponseEntity&lt;Void&gt; remover(@PathVariable Long id) {
+    service.remover(id);
+    return ResponseEntity.noContent().build();
+  }
+}
+                </div>
+            </div>
+            <div class="code-block">
+// Service com regras de negócio
+@Service
+public class ProdutoService {
+  private final ProdutoRepository repo;
+  public ProdutoService(ProdutoRepository repo) { this.repo = repo; }
+
+  public List&lt;ProdutoDTO&gt; listar(Pageable pg) {
+    return repo.findAll(pg).stream()
+               .map(this::toDTO)
+               .toList();
+  }
+
+  public ProdutoDTO salvar(ProdutoDTO dto) {
+    Produto salvo = repo.save(toEntity(dto));
+    return toDTO(salvo);
+  }
+
+  public ProdutoDTO atualizar(Long id, ProdutoDTO dto) {
+    Produto existente = repo.findById(id)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    existente.setNome(dto.nome());
+    existente.setPreco(dto.preco());
+    return toDTO(repo.save(existente));
+  }
+
+  public void remover(Long id) {
+    if (!repo.existsById(id)) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    repo.deleteById(id);
+  }
+
+  private ProdutoDTO toDTO(Produto p) { return new ProdutoDTO(p.getId(), p.getNome(), p.getPreco()); }
+  private Produto toEntity(ProdutoDTO dto) { Produto p = new Produto(); p.setNome(dto.nome()); p.setPreco(dto.preco()); return p; }
+}
+            </div>
+        </section>
+
+        <section class="section-card">
+            <h2>Consumo no frontend (JavaScript)</h2>
+            <div class="grid-2">
+                <div class="code-block">
+// Listar produtos
+async function carregarProdutos() {
+  const resp = await fetch("http://localhost:8080/api/produtos");
+  if (!resp.ok) throw new Error("Erro ao carregar");
+  return await resp.json();
+}
+
+// Criar produto
+async function criarProduto(body) {
+  const resp = await fetch("http://localhost:8080/api/produtos", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (resp.status === 201) {
+    console.log("Criado em", resp.headers.get("Location"));
+  } else {
+    console.error("Falha", await resp.json());
+  }
+}
+                </div>
+                <div>
+                    <p class="small-title">Boas práticas no cliente</p>
+                    <ul class="list-pill">
+                        <li>Centralizar chamadas em um <code>api.js</code> para reaproveitar headers, interceptores e tratamento de erros.</li>
+                        <li>Usar promessas de cancelamento ou <code>AbortController</code> em buscas de texto para evitar respostas fora de ordem.</li>
+                        <li>Tratar estados de carregamento e vazios na UI.</li>
+                        <li>Para apps React: usar <code>react-query</code> / <code>tanstack-query</code> para cache, revalidação e retries.</li>
+                    </ul>
+                    <p class="small-title">CORS</p>
+                    <p>Habilitar origens confiáveis no backend com <code>@CrossOrigin</code> ou configuração global (<code>WebMvcConfigurer#addCorsMappings</code>).</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-card">
+            <h2>Testes e verificação rápida</h2>
+            <div class="grid-2">
+                <div class="code-block">
+cURL - criar
+curl -i -X POST http://localhost:8080/api/produtos ^
+  -H "Content-Type: application/json" ^
+  -d "{\n  \"nome\": \"Teclado\",\n  \"preco\": 49.9\n}"
+
+cURL - buscar pagina 1
+curl http://localhost:8080/api/produtos?page=0&amp;size=5
+                </div>
+                <div>
+                    <p class="small-title">Checklist</p>
+                    <ul class="list-pill">
+                        <li>Retorna status adequados (201/204/404/409).</li>
+                        <li>Mensagens de erro claras e padronizadas.</li>
+                        <li>Paginação consistente (<code>page</code>, <code>size</code>, <code>sort</code>).</li>
+                        <li>Validações no DTO com mensagens específicas.</li>
+                        <li>Logs sem dados sensíveis e uso de HTTPS em produção.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-card">
+            <h2>Segurança e robustez</h2>
+            <ul class="list-pill">
+                <li><strong>Autenticação</strong>: JWT ou OAuth2; enviar token em <code>Authorization: Bearer</code>.</li>
+                <li><strong>Autorização</strong>: controlar por roles no Spring Security (<code>@PreAuthorize</code> / configuração HTTP).</li>
+                <li><strong>Rate limiting</strong>: proteger contra abuso (ex.: Bucket4j, API Gateway).</li>
+                <li><strong>Observabilidade</strong>: logs estruturados + métricas (Micrometer + Prometheus) + tracing (OpenTelemetry).</li>
+                <li><strong>Documentação</strong>: gerar OpenAPI/Swagger UI e manter exemplos de request/response.</li>
+            </ul>
+        </section>
+    </div>
+</body>
+</html>

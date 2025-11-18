@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar projeto</title>
+</head>
+<body>
+    <h1>Editar projeto</h1>
+
+    <form action="{{ url_for('editar', id=projeto.id) }}" method="post">
+        <p>
+            <label>Título:<br>
+                <input type="text" name="titulo" value="{{ projeto.titulo }}" required>
+            </label>
+        </p>
+
+        <p>
+            <label>Tecnologias:<br>
+                <input type="text" name="tecnologia" value="{{ projeto.tecnologia }}">
+            </label>
+        </p>
+
+        <p>
+            <label>Link:<br>
+                <input type="url" name="link" value="{{ projeto.link }}">
+            </label>
+        </p>
+
+        <p>
+            <label>Descrição:<br>
+                <textarea name="descricao" rows="5" cols="40" required>{{ projeto.descricao }}</textarea>
+            </label>
+        </p>
+
+        <p>
+            <button type="submit">Guardar alterações</button>
+            <a href="{{ url_for('home') }}">Voltar</a>
+        </p>
+    </form>
+</body>
+</html>

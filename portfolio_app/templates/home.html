@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Portfólio Digital</title>
+</head>
+<body>
+    <h1>Portfólio Digital</h1>
+
+    <p>
+        <a href="{{ url_for('registar') }}">+ Adicionar novo projeto</a>
+    </p>
+
+    {% if projetos %}
+        <table border="1" cellpadding="8" cellspacing="0">
+            <tr>
+                <th>Título</th>
+                <th>Tecnologias</th>
+                <th>Ações</th>
+            </tr>
+            {% for p in projetos %}
+            <tr>
+                <td>{{ p.titulo }}</td>
+                <td>{{ p.tecnologia }}</td>
+                <td>
+                    <a href="{{ url_for('detalhe', id=p.id) }}">Ver</a> |
+                    <a href="{{ url_for('editar', id=p.id) }}">Editar</a> |
+                    <a href="{{ url_for('apagar', id=p.id) }}" onclick="return confirm('Tens a certeza que queres apagar?');">
+                       Apagar
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>Ainda não tens projetos registados.</p>
+    {% endif %}
+</body>
+</html>
